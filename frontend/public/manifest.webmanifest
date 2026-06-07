@@ -1,0 +1,16 @@
+{
+  "name": "Investment Property Scanner CZ",
+  "short_name": "Property Scanner",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f4ee",
+  "theme_color": "#52745f",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+
