@@ -93,7 +93,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Search
                 Investment Property Scanner CZ
               </div>
               <h1 className="mt-2 text-3xl font-semibold tracking-normal text-ink">
-                Investičné byty Brno a Zlín
+                Investičné byty Brno, Zlín a Olomouc
               </h1>
             </div>
             <button className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-medium shadow-sm">
@@ -109,6 +109,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Search
                 <option value="">Všetky</option>
                 <option value="Brno">Brno</option>
                 <option value="Zlín">Zlín</option>
+                <option value="Olomouc">Olomouc</option>
               </select>
             </label>
             <label className="text-xs font-medium uppercase tracking-normal text-ink/60">

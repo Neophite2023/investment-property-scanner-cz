@@ -9,7 +9,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   SUPABASE_URL: "${{ secrets.SUPABASE_URL }}"
   SUPABASE_SERVICE_ROLE_KEY: "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
-  WATCH_CITIES: "Brno,Zlín"
+  WATCH_CITIES: "Brno,Zlín,Olomouc"
   MAX_PAGES: "4"
 
 jobs:
