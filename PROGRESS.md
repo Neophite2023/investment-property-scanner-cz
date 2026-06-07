@@ -34,6 +34,10 @@ Prepísať scraper Sreality z nefunkčného REST API na scrapping cez `__NEXT_DA
 - 1 listing z 88 nemá cenu (priceCzk=None) — korektne spracovaný ako `price=None, area=None`
 - Konzola Windows cp1250 nevie zobraziť UTF-8 znaky (², ě, š...) — netýka sa logiky
 
+## 2026-06-07 (dodatočne)
+- **Olomouc**: Pridaná do sledovaných miest — `CITY_REGION_MAP`, `.env`, frontend filter, GitHub Actions
+- Počet sledovaných inzerátov: 197 (Brno 88 + Zlín 21 + Olomouc 88)
+
 ## 2026-06-07
 - **Scraper**: Prepísaný Sreality scraper z REST API na `__NEXT_DATA__` z HTML stránok — API vracia 404
 - **CMP consent**: Vyriešený odstránením `Accept: text/html` headeru (spúšťal redirect na Seznam CMP)
