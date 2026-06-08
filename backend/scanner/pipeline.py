@@ -146,6 +146,32 @@ class ScannerPipeline:
         self.db.upsert("reports", row, conflict="report_date")
         return report_json
 
+    def backfill_details(self) -> int:
+        rows = self.db.select(
+            "listings",
+            {
+                "select": "*",
+                "transaction_type": "eq.sale",
+                "active": "eq.true",
+                "description": "is.null",
+            },
+        )
+        if not rows:
+            return 0
+
+        self.sreality.fetch_search("sale", self.settings.cities[0])  # init buildId
+        updated = 0
+        for row in rows:
+            listing = Listing.from_db(row)
+            detail = self.sreality.fetch_detail(listing)
+            if not detail:
+                continue
+            merge_detail(listing, detail)
+            self.db.upsert("listings", [listing.to_db()], conflict="listing_id")
+            updated += 1
+
+        return updated
+
     def run_all(self) -> dict[str, Any]:
         sale_listings = self.scrape("sale", with_detail=True)
         rent_listings = self.scrape("rent", with_detail=False)

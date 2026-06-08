@@ -41,6 +41,40 @@ class Listing:
     last_seen: str | None = None
     raw_data: dict[str, Any] = field(default_factory=dict)
 
+    @classmethod
+    def from_db(cls, row: dict[str, Any]) -> Listing:
+        return cls(
+            listing_id=row.get("listing_id") or "",
+            source=row.get("source") or "",
+            transaction_type=row.get("transaction_type") or "",
+            title=row.get("title") or "",
+            url=row.get("url") or "",
+            city=row.get("city"),
+            district=row.get("district"),
+            street=row.get("street"),
+            price=row.get("price"),
+            area=row.get("area"),
+            price_per_m2=row.get("price_per_m2"),
+            layout=row.get("layout"),
+            ownership=row.get("ownership"),
+            floor=row.get("floor"),
+            floors_total=row.get("floors_total"),
+            condition=row.get("condition"),
+            elevator=row.get("elevator"),
+            balcony=row.get("balcony"),
+            terrace=row.get("terrace"),
+            cellar=row.get("cellar"),
+            parking=row.get("parking"),
+            garage=row.get("garage"),
+            latitude=row.get("latitude"),
+            longitude=row.get("longitude"),
+            description=row.get("description"),
+            active=row.get("active", True),
+            first_seen=row.get("first_seen"),
+            last_seen=row.get("last_seen"),
+            raw_data=row.get("raw_data") or {},
+        )
+
     def to_db(self) -> dict[str, Any]:
         now = utcnow().isoformat()
         return {

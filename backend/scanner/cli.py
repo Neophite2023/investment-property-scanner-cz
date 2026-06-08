@@ -20,6 +20,7 @@ def main() -> None:
     subparsers.add_parser("score")
     subparsers.add_parser("report")
     subparsers.add_parser("run-all")
+    subparsers.add_parser("backfill-details")
 
     args = parser.parse_args()
     pipeline = ScannerPipeline(get_settings())
@@ -39,6 +40,9 @@ def main() -> None:
         elif args.command == "report":
             result = pipeline.generate_daily_report()
             print(json.dumps(result, ensure_ascii=False, indent=2))
+        elif args.command == "backfill-details":
+            result = pipeline.backfill_details()
+            print(json.dumps({"updated": result}, ensure_ascii=False, indent=2))
         elif args.command == "run-all":
             result = pipeline.run_all()
             print(json.dumps(result, ensure_ascii=False, indent=2))
