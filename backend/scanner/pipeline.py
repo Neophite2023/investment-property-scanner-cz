@@ -27,6 +27,11 @@ class ScannerPipeline:
         for city in self.settings.cities:
             items = self.sreality.fetch_search(transaction_type, city)
             listings = normalize_many(items, transaction_type, city)
+            if with_detail:
+                for listing in listings:
+                    detail = self.sreality.fetch_detail(listing)
+                    if detail:
+                        merge_detail(listing, detail)
             all_listings.extend(listings)
 
         self.persist_listings(all_listings)

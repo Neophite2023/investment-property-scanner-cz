@@ -19,9 +19,13 @@ NEXT_DATA_RE = re.compile(
 TRANSACTION_SLUG = {"sale": "prodej", "rent": "pronajem"}
 
 
+BUILD_ID_RE = re.compile(r'"buildId"\s*:\s*"([^"]+)"')
+
+
 class SrealityClient:
     def __init__(self, settings: Settings):
         self.settings = settings
+        self.build_id: str | None = None
         self.client = httpx.Client(
             timeout=25,
             follow_redirects=True,
@@ -45,6 +49,12 @@ class SrealityClient:
             response = self.client.get(url)
             response.raise_for_status()
 
+            # Extract buildId from first page
+            if not self.build_id:
+                m = BUILD_ID_RE.search(response.text)
+                if m:
+                    self.build_id = m.group(1)
+
             page_estates = _parse_estates_from_html(response.text)
             if not page_estates:
                 break
@@ -55,8 +65,26 @@ class SrealityClient:
 
         return estates
 
-    def fetch_detail(self, listing_id: str) -> dict[str, Any]:
-        return {}
+    def fetch_detail(self, listing: Listing) -> dict[str, Any]:
+        if not self.build_id or not listing.url:
+            return {}
+
+        # Extract path from URL: https://www.sreality.cz/detail/...
+        path = listing.url.split("sreality.cz", 1)[-1]
+        json_url = f"https://www.sreality.cz/_next/data/{self.build_id}/cs{path}.json"
+        try:
+            response = self.client.get(json_url)
+            if response.status_code != 200:
+                return {}
+            data = response.json()
+            queries = data.get("pageProps", {}).get("dehydratedState", {}).get("queries", [])
+            for q in queries:
+                qk = q.get("queryKey", [])
+                if isinstance(qk, list) and len(qk) > 1 and isinstance(qk[1], dict) and qk[1].get("id") == int(listing.listing_id):
+                    return q.get("state", {}).get("data", {})
+            return {}
+        except Exception:
+            return {}
 
 
 DETAIL_URL_RE = re.compile(r'href="(/detail/[^"]+)"')
@@ -135,7 +163,43 @@ def normalize_search_item(item: dict[str, Any], transaction_type: str, fallback_
 
 
 def merge_detail(listing: Listing, detail: dict[str, Any]) -> Listing:
-    listing.raw_data = {"search": listing.raw_data}
+    params = detail.get("params") or {}
+    listing.raw_data = {"search": listing.raw_data, "params": params}
+
+    if not listing.description:
+        listing.description = clean_text(detail.get("description"))
+
+    if not listing.ownership:
+        val = params.get("ownership")
+        listing.ownership = val.get("name") if isinstance(val, dict) else None
+
+    if not listing.floor:
+        val = params.get("floorNumber")
+        listing.floor = int(val) if isinstance(val, (int, float)) else val
+
+    if not listing.floors_total:
+        val = params.get("floors")
+        listing.floors_total = int(val) if isinstance(val, (int, float)) else val
+
+    for field, param_key in [
+        ("elevator", "elevator"),
+        ("balcony", "balcony"),
+        ("terrace", "terrace"),
+        ("cellar", "cellar"),
+        ("parking", "parking"),
+        ("garage", "garage"),
+    ]:
+        if getattr(listing, field) is None:
+            val = params.get(param_key)
+            if isinstance(val, dict):
+                setattr(listing, field, val.get("name") == "Ano" or val.get("value") == 1)
+            elif isinstance(val, bool):
+                setattr(listing, field, val)
+
+    if not listing.condition:
+        val = params.get("buildingCondition") or params.get("stateCb")
+        listing.condition = val.get("name") if isinstance(val, dict) else None
+
     return listing
 
 
