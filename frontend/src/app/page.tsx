@@ -205,7 +205,7 @@ function Opportunity({ row, eurRate }: { row: ScoreRow; eurRate: number }) {
       </div>
       <div className="flex flex-col justify-between gap-3 rounded-md border border-line bg-paper p-3">
         <p className="text-sm text-ink/70">{row.next_action}</p>
-        <a className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ink px-3 text-sm font-medium text-white" href={listing.url} target="_blank" rel="noreferrer">
+        <a className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ink px-3 text-sm font-medium text-white" href={listing.url} target="_blank" rel="noopener noreferrer">
           <ExternalLink size={18} />
           Otvoriť inzerát
         </a>
