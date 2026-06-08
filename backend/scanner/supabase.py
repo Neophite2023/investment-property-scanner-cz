@@ -30,7 +30,7 @@ class SupabaseRest:
         if not payload:
             return []
         results: list[dict[str, Any]] = []
-        batch_size = 20
+        batch_size = 5
         for i in range(0, len(payload), batch_size):
             batch = payload[i : i + batch_size]
             response = self.client.post(
