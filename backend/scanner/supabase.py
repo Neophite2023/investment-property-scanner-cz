@@ -29,14 +29,19 @@ class SupabaseRest:
         payload = rows if isinstance(rows, list) else [rows]
         if not payload:
             return []
-        response = self.client.post(
-            f"{self.base_url}/{table}",
-            params={"on_conflict": conflict},
-            headers={"Prefer": "resolution=merge-duplicates,return=representation"},
-            json=payload,
-        )
-        response.raise_for_status()
-        return response.json()
+        results: list[dict[str, Any]] = []
+        batch_size = 50
+        for i in range(0, len(payload), batch_size):
+            batch = payload[i : i + batch_size]
+            response = self.client.post(
+                f"{self.base_url}/{table}",
+                params={"on_conflict": conflict},
+                headers={"Prefer": "resolution=merge-duplicates,return=representation"},
+                json=batch,
+            )
+            response.raise_for_status()
+            results.extend(response.json())
+        return results
 
     def insert(self, table: str, rows: list[dict[str, Any]] | dict[str, Any]) -> list[dict[str, Any]]:
         payload = rows if isinstance(rows, list) else [rows]

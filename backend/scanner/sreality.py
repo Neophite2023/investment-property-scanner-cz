@@ -109,9 +109,7 @@ def normalize_search_item(item: dict[str, Any], transaction_type: str, fallback_
     lon = _parse_float(locality.get("longitude"))
     url = item.get("_detail_url")
     if not url:
-        url = f"https://www.sreality.cz/detail/prodej/byt/-/-/{listing_id}"
-        if transaction_type == "rent":
-            url = f"https://www.sreality.cz/detail/pronajem/byt/-/-/{listing_id}"
+        url = _construct_url(locality, layout, listing_id, transaction_type)
 
     city = locality.get("city") or fallback_city
     district = locality.get("district")
@@ -143,6 +141,23 @@ def merge_detail(listing: Listing, detail: dict[str, Any]) -> Listing:
 
 def normalize_many(items: Iterable[dict[str, Any]], transaction_type: str, city: str) -> list[Listing]:
     return [normalize_search_item(item, transaction_type, city) for item in items]
+
+
+def _construct_url(locality: dict[str, Any], layout: str | None, listing_id: str, transaction_type: str) -> str:
+    import unicodedata, re
+    def slugify(text: str) -> str:
+        text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().lower().strip()
+        text = re.sub(r"[^a-z0-9-]", "-", text)
+        return re.sub(r"-+", "-", text).strip("-")
+
+    city = slugify(locality.get("city") or "")
+    district = slugify(locality.get("district") or "")
+    street = slugify(locality.get("street") or "")
+    parts = [p for p in [city, district, street] if p]
+    loc_slug = "-".join(parts)
+    layout_slug = (layout or "").replace(" ", "")
+    trans = "pronajem" if transaction_type == "rent" else "prodej"
+    return f"https://www.sreality.cz/detail/{trans}/byt/{layout_slug}/{loc_slug}/{listing_id}"
 
 
 def clean_text(value: Any) -> str:
