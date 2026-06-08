@@ -1,4 +1,4 @@
-import { Bell, Building2, ExternalLink, Filter, Gauge, Home, TrendingDown } from "lucide-react";
+import { Building2, ExternalLink, Filter, Gauge, Home, TrendingDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { formatCzk, formatEur, formatNumber, formatPercent } from "@/lib/format";
 import { getEurRate } from "@/lib/exchange";
@@ -96,10 +96,6 @@ export default async function Dashboard({ searchParams }: { searchParams: Search
                 Investičné byty Brno, Zlín a Olomouc
               </h1>
             </div>
-            <button className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-medium shadow-sm">
-              <Bell size={18} />
-              Web Push
-            </button>
           </div>
 
           <form className="grid gap-3 rounded-md border border-line bg-white p-3 md:grid-cols-[1fr_1fr_1fr_auto]">
