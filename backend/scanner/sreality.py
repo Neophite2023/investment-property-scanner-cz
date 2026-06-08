@@ -59,12 +59,26 @@ class SrealityClient:
         return {}
 
 
+DETAIL_URL_RE = re.compile(r'href="(/detail/[^"]+)"')
+
+
 def _parse_estates_from_html(html: str) -> list[dict[str, Any]]:
     match = NEXT_DATA_RE.search(html)
     if not match:
         return []
     data = json.loads(match.group(1))
-    return _find_estates_array(data) or []
+    estates = _find_estates_array(data) or []
+
+    # Extract detail URLs from HTML and attach to estates by listing_id
+    detail_urls = DETAIL_URL_RE.findall(html)
+    for estate in estates:
+        eid = str(estate.get("id", ""))
+        for url in detail_urls:
+            if url.rstrip("/").endswith("/" + eid):
+                estate["_detail_url"] = "https://www.sreality.cz" + url
+                break
+
+    return estates
 
 
 def _find_estates_array(obj: Any) -> list[dict[str, Any]] | None:
@@ -93,9 +107,11 @@ def normalize_search_item(item: dict[str, Any], transaction_type: str, fallback_
     layout = _extract_layout(item)
     lat = _parse_float(locality.get("latitude"))
     lon = _parse_float(locality.get("longitude"))
-    url = f"https://www.sreality.cz/detail/prodej/byt/-/-/{listing_id}"
-    if transaction_type == "rent":
-        url = f"https://www.sreality.cz/detail/pronajem/byt/-/-/{listing_id}"
+    url = item.get("_detail_url")
+    if not url:
+        url = f"https://www.sreality.cz/detail/prodej/byt/-/-/{listing_id}"
+        if transaction_type == "rent":
+            url = f"https://www.sreality.cz/detail/pronajem/byt/-/-/{listing_id}"
 
     city = locality.get("city") or fallback_city
     district = locality.get("district")
