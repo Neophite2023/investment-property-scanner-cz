@@ -15,6 +15,16 @@ type Listing = {
   price_per_m2: number | null;
   layout: string | null;
   first_seen: string;
+  floor: number | null;
+  floors_total: number | null;
+  condition: string | null;
+  ownership: string | null;
+  balcony: boolean | null;
+  terrace: boolean | null;
+  cellar: boolean | null;
+  parking: boolean | null;
+  elevator: boolean | null;
+  description: string | null;
 };
 
 type ScoreRow = {
@@ -196,6 +206,22 @@ function Opportunity({ row, eurRate }: { row: ScoreRow; eurRate: number }) {
           <Info label="Odhad nájmu" value={formatCzk(row.estimated_rent)} secondary={formatEur(rentEur)} />
           <Info label="Hrubý výnos" value={formatPercent(row.estimated_gross_yield)} />
         </div>
+        <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <Info label="Stav" value={listing.condition || "—"} />
+          <Info label="Vlastníctvo" value={listing.ownership || "—"} />
+          <Info label="Poschodie" value={listing.floor != null ? (listing.floors_total != null ? `${listing.floor}. / ${listing.floors_total}.` : `${listing.floor}.`) : "—"} />
+          <Info label="Výťah" value={yn(listing.elevator)} />
+          <Info label="Balkón" value={yn(listing.balcony)} />
+          <Info label="Terasa" value={yn(listing.terrace)} />
+          <Info label="Pivnica" value={yn(listing.cellar)} />
+          <Info label="Parkovanie" value={yn(listing.parking)} />
+        </div>
+        {listing.description ? (
+          <details className="mt-3 text-sm">
+            <summary className="cursor-pointer text-xs font-medium uppercase tracking-normal text-moss">Popis nehnuteľnosti</summary>
+            <p className="mt-2 whitespace-pre-wrap text-ink/70">{listing.description}</p>
+          </details>
+        ) : null}
         {(row.reasons?.length || row.risks?.length) ? (
           <div className="mt-3 grid gap-2 text-sm md:grid-cols-2">
             <TextList title="Dôvody" items={row.reasons || []} />
@@ -238,6 +264,12 @@ function TextList({ title, items }: { title: string; items: string[] }) {
       </ul>
     </div>
   );
+}
+
+function yn(value: boolean | null): string {
+  if (value === true) return "Áno";
+  if (value === false) return "Nie";
+  return "—";
 }
 
 function SetupState() {
