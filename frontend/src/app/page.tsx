@@ -50,6 +50,9 @@ type SearchParams = {
   city?: string;
   layout?: string;
   minScore?: string;
+  sort?: string;
+  belowMarket?: string;
+  minConfidence?: string;
 };
 
 export default async function Dashboard({ searchParams }: { searchParams: SearchParams }) {
@@ -61,12 +64,30 @@ export default async function Dashboard({ searchParams }: { searchParams: Search
   const eurRate = await getEurRate();
 
   const minScore = Number(searchParams.minScore || 70);
+  const minConfidence = Number(searchParams.minConfidence || 0);
+  const belowMarket = searchParams.belowMarket === "1";
+  const sortBy = searchParams.sort || "score";
+
   let query = supabase
     .from("scores")
     .select("*,listings(*)")
-    .gte("investment_score", minScore)
-    .order("investment_score", { ascending: false })
-    .limit(30);
+    .gte("investment_score", minScore);
+
+  if (minConfidence > 0) {
+    query = query.gte("confidence_score", minConfidence);
+  }
+  if (belowMarket) {
+    query = query.lt("market_difference_percent", 0);
+  }
+
+  if (sortBy === "yield") {
+    query = query.not("estimated_gross_yield", "is", null).order("estimated_gross_yield", { ascending: false });
+  } else if (sortBy === "discount") {
+    query = query.order("market_difference_percent", { ascending: true });
+  } else {
+    query = query.order("investment_score", { ascending: false });
+  }
+  query = query.limit(30);
 
   const { data: scoreData } = await query;
   const rows = ((scoreData || []) as ScoreRow[]).filter((row) => {
@@ -108,7 +129,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Search
             </div>
           </div>
 
-          <form className="grid gap-3 rounded-md border border-line bg-white p-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+          <form className="grid gap-3 rounded-md border border-line bg-white p-3 md:grid-cols-[1fr_1fr_1fr_1fr_auto]">
             <label className="text-xs font-medium uppercase tracking-normal text-ink/60">
               Mesto
               <select name="city" defaultValue={searchParams.city || ""} className="mt-1 h-10 w-full rounded-md border border-line bg-white px-3 text-sm text-ink">
@@ -128,9 +149,23 @@ export default async function Dashboard({ searchParams }: { searchParams: Search
               </select>
             </label>
             <label className="text-xs font-medium uppercase tracking-normal text-ink/60">
-              Min. skóre
-              <input name="minScore" type="number" min="0" max="100" defaultValue={minScore} className="mt-1 h-10 w-full rounded-md border border-line bg-white px-3 text-sm text-ink" />
+              Zoradiť podľa
+              <select name="sort" defaultValue={sortBy} className="mt-1 h-10 w-full rounded-md border border-line bg-white px-3 text-sm text-ink">
+                <option value="score">Skóre</option>
+                <option value="yield">Hrubý výnos</option>
+                <option value="discount">Zľava z trhu</option>
+              </select>
             </label>
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-2 text-xs font-medium uppercase tracking-normal text-ink/60">
+                <input name="belowMarket" type="checkbox" value="1" defaultChecked={belowMarket} className="h-4 w-4 rounded border-line" />
+                Len pod trhom
+              </label>
+              <label className="flex items-center gap-2 text-xs font-medium uppercase tracking-normal text-ink/60">
+                Min. spoľahlivosť
+                <input name="minConfidence" type="number" min="0" max="100" defaultValue={minConfidence || ""} className="h-8 w-16 rounded-md border border-line bg-white px-2 text-xs text-ink" />
+              </label>
+            </div>
             <button className="inline-flex h-10 items-center justify-center gap-2 self-end rounded-md bg-moss px-4 text-sm font-medium text-white">
               <Filter size={18} />
               Filtrovať
