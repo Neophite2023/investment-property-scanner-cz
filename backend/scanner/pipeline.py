@@ -22,6 +22,14 @@ class ScannerPipeline:
         self.sreality.close()
         self.db.close()
 
+    def _city_filter(self, listing: Listing) -> bool:
+        if not listing.city:
+            return False
+        for known in self.settings.cities:
+            if known.casefold() == listing.city.casefold():
+                return True
+        return False
+
     def scrape(self, transaction_type: str = "sale", with_detail: bool = True) -> list[Listing]:
         all_listings: list[Listing] = []
         for city in self.settings.cities:
@@ -34,6 +42,7 @@ class ScannerPipeline:
                         merge_detail(listing, detail)
             all_listings.extend(listings)
 
+        all_listings = [l for l in all_listings if self._city_filter(l)]
         self.persist_listings(all_listings)
         return all_listings
 
@@ -111,6 +120,12 @@ class ScannerPipeline:
             scores.append(score_listing(listing, market_stat, rent_stat).to_db())
 
         self.db.upsert("scores", scores, conflict="listing_id")
+        # Clean up old scores for deactivated listings
+        active_ids = {l["listing_id"] for l in listings}
+        old_scores = self.db.select("scores", {"select": "listing_id"})
+        for s in old_scores:
+            if s["listing_id"] not in active_ids:
+                self.db.client.delete(f"{self.db.base_url}/scores", params={"listing_id": f"eq.{s['listing_id']}"})
         return scores
 
     def generate_daily_report(self) -> dict[str, Any]:
@@ -120,9 +135,11 @@ class ScannerPipeline:
             {
                 "select": "*,listings(*)",
                 "order": "investment_score.desc",
-                "limit": "10",
+                "limit": "30",
             },
         )
+        # Keep only scores with active listings
+        top_scores = [s for s in top_scores if s.get("listings") and s["listings"].get("active")][:10]
         new_listings = self.db.select(
             "listings",
             {

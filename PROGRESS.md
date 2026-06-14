@@ -34,17 +34,25 @@ Prepísať scraper Sreality z nefunkčného REST API na scrapping cez `__NEXT_DA
 - [x] HTML search stránka — funguje s `__NEXT_DATA__` parsovaním
 - [x] Paginácia (`?strana=N`) — funguje
 - [x] Normalizácia — cena, plocha, layout, lokácia kompletné
-- [x] Detail fetch — odstránený (vracia prázdny dict)
+- [x] Detail fetch — cez `/_next/data/{buildId}/cs/detail/...json`
+- [x] Detail fields — description, ownership, condition, floor, elevator, balcony, terrace, cellar, parking
+- [x] Frontend detail display — Stav, Vlastníctvo, Poschodie, Výťah, Balkón, Terasa, Pivnica, Parkovanie, Popis
 - [x] CMP consent obidený (odstránenie Accept headeru)
 - [x] EUR/CZK prepočet — zobrazenie v CZK aj EUR
 - [x] Vercel deploy — frontend live
 - [x] Sreality detail URLs — opravené (HTML extrakcia + fallback z locality)
 
 ## Known Limitations
-- Detail info (popis, vlastníctvo, kondícia, výťah, balkón) nie sú v NEXT_DATA — akceptované (~30% váha v scoringu)
-- 15 listingov má stále `/-/-/` URL (chýba layout alebo neexistujú na Sreality)
+- 8 listingov nemá detail data — pravdepodobne zrušené inzeráty na Sreality
 - Safari na iPhone: `target="_blank"` nemusí fungovať korektne — pridané `rel="noopener noreferrer"`
 - Konzola Windows cp1250 nevie zobraziť UTF-8 znaky (², ě, š...) — netýka sa logiky
+
+## 2026-06-08 (druhá session)
+- **Detail scraping**: Implementovaný cez `/_next/data/{buildId}/cs/detail/{...}.json` — extrahuje description, ownership, condition, floor, floors_total, elevator, balcony, terrace, cellar, parking, garage
+- **Frontend detail display**: Pridané zobrazenie Stav, Vlastníctvo, Poschodie, Výťah, Balkón, Terasa, Pivnica, Parkovanie + collapse Popis nehnuteľnosti
+- **Backfill**: `backfill-details` command — doplnil detail data pre 400/408 active sale listingov
+- **Batch upsert batch size**: Znížený z 20 na 5 rows (detail data majú dlhé description texty)
+- **Vercel deploy**: Frontend nasadený s novým tokenom na `frontend-one-kappa-13.vercel.app`
 
 ## 2026-06-08
 - **Vercel deploy**: Frontend live na `frontend-one-kappa-13.vercel.app`
@@ -58,13 +66,14 @@ Prepísať scraper Sreality z nefunkčného REST API na scrapping cez `__NEXT_DA
 - **CI/CD**: GitHub Actions scan beží 7× denne; pipeline spustená manuálne
 
 ## Relevant Files
-- `backend/scanner/sreality.py` — hlavný scraper, NEXT_DATA parsing + URL extrakcia/konštrukcia
-- `backend/scanner/config.py` — mapovanie miest a regiónov
-- `backend/scanner/pipeline.py` — orchestrácia scrapovania
+- `backend/scanner/sreality.py` — hlavný scraper, NEXT_DATA parsing + URL extrakcia + detail fetch cez `/_next/data`
+- `backend/scanner/models.py` — `Listing` dataclass s detail fields + `from_db()`, `to_db()`
+- `backend/scanner/pipeline.py` — orchestrácia scrapovania + `backfill_details()`
 - `backend/scanner/exchange.py` — fetching EUR/CZK kurzu z CNB API
-- `backend/scanner/supabase.py` — REST klient pre Supabase (upsert s batchovaním)
+- `backend/scanner/supabase.py` — REST klient pre Supabase (upsert s batchovaním po 5)
+- `backend/scanner/cli.py` — CLI príkazy vr. `backfill-details`
+- `frontend/src/app/page.tsx` — dashboard, detail fields, popis nehnuteľnosti
 - `frontend/src/lib/exchange.ts` — frontend fetch kurzu s cache
 - `frontend/src/lib/format.ts` — `formatCzk()`, `formatEur()`
-- `frontend/src/app/page.tsx` — dashboard, EUR ceny, Web Push odstránený
 - `frontend/package.json` — optionalDependencies pre SWC
 - `.github/workflows/scan.yml` — CI/CD pipeline

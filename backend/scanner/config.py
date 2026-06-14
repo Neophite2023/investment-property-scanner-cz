@@ -5,11 +5,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 CITY_REGION_MAP: dict[str, tuple[int, str]] = {
-    "Brno": (14, "jihomoravsky-kraj"),
-    "Zlín": (9, "zlinsky-kraj"),
-    "Olomouc": (13, "olomoucky-kraj"),
+    "Brno": (14, "brno"),
+    "Zlín": (9, "zlin"),
+    "Olomouc": (13, "olomouc"),
     "Praha": (10, "praha"),
-    "Ostrava": (12, "moravskoslezsky-kraj"),
+    "Ostrava": (12, "ostrava"),
 }
 
 
