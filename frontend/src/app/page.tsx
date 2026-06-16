@@ -118,14 +118,9 @@ export default async function Dashboard({ searchParams }: { searchParams: Search
       <header className="border-b border-line bg-paper">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <div>
-              <div className="flex items-center gap-2 text-sm font-medium text-moss">
-                <Building2 size={18} />
-                Investment Property Scanner CZ
-              </div>
-              <h1 className="mt-2 text-3xl font-semibold tracking-normal text-ink">
-                Investičné byty Brno, Zlín a Olomouc
-              </h1>
+            <div className="flex items-center gap-2 text-2xl font-medium text-moss">
+              <Building2 size={28} />
+              Investment Property Scanner CZ
             </div>
           </div>
 
