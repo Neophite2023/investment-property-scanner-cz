@@ -47,6 +47,14 @@ Prepísať scraper Sreality z nefunkčného REST API na scrapping cez `__NEXT_DA
 - Safari na iPhone: `target="_blank"` nemusí fungovať korektne — pridané `rel="noopener noreferrer"`
 - Konzola Windows cp1250 nevie zobraziť UTF-8 znaky (², ě, š...) — netýka sa logiky
 
+## 2026-06-14
+- **City filter oprava**: Sreality SEO slug zmenený z kraja (`jihomoravsky-kraj`) na mestá (`brno`, `zlin`, `olomouc`) v `CITY_REGION_MAP`
+- **City filter v pipeline**: Pridaný `_city_filter()` v `pipeline.py` — po scrapovaní sa ponechajú len listingy z `WATCH_CITIES`
+- **Čistenie DB**: 658 listingov z iných miest deaktivovaných (všetky `active=false`)
+- **Čistenie scores**: Staré scores pre neaktívne listingy zmazané počas `score_active_listings()`
+- **Nové filtre frontend**: Pridaný sort podľa hrubého výnosu a zľavy z trhu, checkbox "Len pod trhom", filter "Min. spoľahlivosť"
+- **Header redesign**: Odstránený podnadpis "Investičné byty Brno, Zlín a Olomouc", názov zväčšený na `text-2xl`
+
 ## 2026-06-08 (druhá session)
 - **Detail scraping**: Implementovaný cez `/_next/data/{buildId}/cs/detail/{...}.json` — extrahuje description, ownership, condition, floor, floors_total, elevator, balcony, terrace, cellar, parking, garage
 - **Frontend detail display**: Pridané zobrazenie Stav, Vlastníctvo, Poschodie, Výťah, Balkón, Terasa, Pivnica, Parkovanie + collapse Popis nehnuteľnosti
