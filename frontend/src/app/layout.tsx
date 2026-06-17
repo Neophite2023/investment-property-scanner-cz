@@ -6,7 +6,12 @@ import { ServiceWorkerRegister } from "./sw-register";
 export const metadata: Metadata = {
   title: "Investment Property Scanner CZ",
   description: "Dashboard pre vyhľadávanie investičných bytov v ČR",
-  manifest: "/manifest.webmanifest"
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export const viewport: Viewport = {
