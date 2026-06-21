@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import statistics
+from datetime import datetime, timezone
 from typing import Any
 
 from .models import Score
@@ -157,7 +158,14 @@ def score_listing(listing: dict[str, Any], market_stat: dict[str, Any] | None, r
         + condition_score * 0.10
         + 50 * 0.10
     )
-    investment_score = clamp(round(base - min(risk_penalty, 30)), 0, 100)
+
+    age_modifier, age_reason, age_risk = _age_score(listing.get("first_seen"))
+    if age_reason:
+        reasons.append(age_reason)
+    if age_risk:
+        risks.append(age_risk)
+
+    investment_score = clamp(round(base - min(risk_penalty, 30) + age_modifier), 0, 100)
     confidence = confidence_score(market_stat, rent_stat, listing)
 
     deal_type = "Na preverenie"
@@ -253,3 +261,49 @@ def has_critical_risk(risks: list[str]) -> bool:
 
 def clamp(value: int, minimum: int, maximum: int) -> int:
     return max(minimum, min(maximum, value))
+
+
+def _age_score(first_seen: str | None) -> tuple[int, str | None, str | None]:
+    if not first_seen:
+        return 0, None, None
+
+    try:
+        days = (datetime.now(timezone.utc) - datetime.fromisoformat(first_seen)).days
+        if days < 0:
+            return 0, None, None
+    except (ValueError, TypeError):
+        return 0, None, None
+
+    if days <= 3:
+        if days == 0:
+            modifier = 0
+            reason = "Čerstvá ponuka — objavená dnes."
+        elif days == 1:
+            modifier = 0
+            reason = "Čerstvá ponuka — objavená včera."
+        else:
+            modifier = 0
+            reason = f"Čerstvá ponuka — objavená pred {days} dňami."
+        risk = None
+    elif days <= 14:
+        modifier = 3
+        reason = f"Inzerát na trhu {days} dní — predajca môže byť ústretovejší k vyjednávaniu."
+        risk = None
+    elif days <= 30:
+        modifier = 5
+        reason = f"Inzerát na trhu {days} dní — predajca pravdepodobne otvorený vyjednávaniu."
+        risk = None
+    elif days <= 60:
+        modifier = 3
+        reason = f"Inzerát na trhu {days} dní — väčší priestor na vyjednávanie."
+        risk = f"Na trhu už {days} dní — overiť, či s nehnuteľnosťou nie je skrytý problém."
+    elif days <= 90:
+        modifier = 0
+        reason = f"Inzerát na trhu {days} dní — vysoká vyjednávacia páka."
+        risk = f"Na trhu už {days} dní — riziko skrytého problému."
+    else:
+        modifier = -5
+        reason = None
+        risk = f"Na trhu už {days} dní — pravdepodobne vážny dôvod nepredajnosti."
+
+    return modifier, reason, risk
