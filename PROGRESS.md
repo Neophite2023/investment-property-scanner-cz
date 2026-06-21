@@ -52,8 +52,11 @@ Prepísať scraper Sreality z nefunkčného REST API na scrapping cez `__NEXT_DA
 - **City filter v pipeline**: Pridaný `_city_filter()` v `pipeline.py` — po scrapovaní sa ponechajú len listingy z `WATCH_CITIES`
 - **Čistenie DB**: 658 listingov z iných miest deaktivovaných (všetky `active=false`)
 - **Čistenie scores**: Staré scores pre neaktívne listingy zmazané počas `score_active_listings()`
+- **Age-based scoring**: Pridaný `_age_score()` v `analyzer.py` — modifikuje skóre podľa veku inzerátu (−5 až +5 bodov) a dopĺňa reasons/risks (vyjednávacia páka vs. riziko skrytého problému)
 - **Nové filtre frontend**: Pridaný sort podľa hrubého výnosu a zľavy z trhu, checkbox "Len pod trhom", filter "Min. spoľahlivosť"
 - **Header redesign**: Odstránený podnadpis "Investičné byty Brno, Zlín a Olomouc", názov zväčšený na `text-2xl`
+- **Favicon**: Explicite pridaná do metadata (SVG ikona domčeka)
+- **Days ago**: Zobrazenie "pred X dňami" pri každom inzeráte
 
 ## 2026-06-08 (druhá session)
 - **Detail scraping**: Implementovaný cez `/_next/data/{buildId}/cs/detail/{...}.json` — extrahuje description, ownership, condition, floor, floors_total, elevator, balcony, terrace, cellar, parking, garage
