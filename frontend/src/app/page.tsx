@@ -227,6 +227,7 @@ function Opportunity({ row, eurRate }: { row: ScoreRow; eurRate: number }) {
         <h3 className="mt-3 text-lg font-semibold">{listing.title}</h3>
         <p className="mt-1 text-sm text-ink/60">
           {[listing.city, listing.district, listing.layout].filter(Boolean).join(" - ")}
+          <span className="ml-2 text-ink/40">• {daysAgo(listing.first_seen)}</span>
         </p>
         <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <Info label="Cena" value={formatCzk(listing.price)} secondary={formatEur(priceEur)} />
@@ -300,6 +301,13 @@ function yn(value: boolean | null): string {
   if (value === true) return "Áno";
   if (value === false) return "Nie";
   return "—";
+}
+
+function daysAgo(iso: string): string {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (days === 0) return "dnes";
+  if (days === 1) return "včera";
+  return `pred ${days} dňami`;
 }
 
 function SetupState() {
